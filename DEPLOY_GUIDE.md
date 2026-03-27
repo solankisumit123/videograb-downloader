@@ -5,19 +5,27 @@ Follow these steps to make your website live (Production).
 ## 1. Backend Deployment (Node.js + yt-dlp + FFmpeg)
 
 The backend needs a server where `yt-dlp` and `ffmpeg` can be installed.
-We have already created a **Dockerfile** for you in the `backend/` folder.
 
-**Steps for Railway.app (Recommended):**
-1. Create a [Railway](https://railway.app/) account.
-2. Create a new project and select **"Deploy from GitHub"**.
-3. Point it to your `backend/` directory.
-4. Railway will automatically detect the **Dockerfile** and install Node.js, `yt-dlp`, and `ffmpeg`.
-5. **Environment Variables** (Set these in Railway Settings):
+### Option A: Render.com (Recommended - Use Docker)
+1. Create a [Render](https://render.com/) account.
+2. Select **"New Web Service"** and link your GitHub repo.
+3. **CRITICAL**: Select **"Docker"** as the Runtime (instead of Node).
+4. Set the **Dockerfile Path** to `backend/Dockerfile`.
+5. Set the **Context** to `backend`.
+6. Render will build the Docker image which includes `yt-dlp` and `ffmpeg`.
+7. **Environment Variables**:
    - `PORT`: 3001
    - `NODE_ENV`: production
-   - `CORS_ORIGIN`: Your Frontend URL (e.g., `https://videograb-web.vercel.app`)
-   - `SUPABASE_URL`: (Your Supabase project URL)
-   - `SUPABASE_KEY`: (Your Supabase anon key)
+   - `BACKEND_URL`: https://your-app-name.onrender.com
+   - `SUPABASE_URL`: (Your URL)
+   - `SUPABASE_ANON_KEY`: (Your Key)
+
+### Option B: Railway.app (Easy Docker)
+1. Create a [Railway](https://railway.app/) account.
+2. Select **"Deploy from GitHub"**.
+3. Point it to your `backend/` directory.
+4. Railway will use the **Dockerfile** automatically.
+5. Set the same **Environment Variables** as above.
 
 ---
 

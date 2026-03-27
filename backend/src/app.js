@@ -14,6 +14,11 @@ import downloadRouter from './routes/download.js';
 import historyRouter  from './routes/history.js';
 import statusRouter   from './routes/status.js';
 import proxyRouter    from './routes/proxy.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -22,6 +27,9 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// ── Static Files (SEO & Verification) ───────────────────────────────────────
+app.use(express.static(path.join(__dirname, '../public')));
 
 // ── Rate Limiting ────────────────────────────────────────────────────────────
 app.use('/api', generalLimiter);
