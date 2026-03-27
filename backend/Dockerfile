@@ -18,7 +18,8 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install --production
+# Make sure to install dependencies properly
+RUN npm install
 
 # Copy the rest of the backend code
 COPY . .
