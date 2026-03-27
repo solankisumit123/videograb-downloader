@@ -31,6 +31,19 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // ── Static Files (SEO & Verification) ───────────────────────────────────────
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Explicit routes for SEO files to ensure correct MIME types
+app.get('/sitemap.xml', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/sitemap.xml'));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/robots.txt'));
+});
+
+app.get('/googledae7bdbf3047def5.html', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/googledae7bdbf3047def5.html'));
+});
+
 // ── Rate Limiting ────────────────────────────────────────────────────────────
 app.use('/api', generalLimiter);
 
