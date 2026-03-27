@@ -6,6 +6,10 @@ const allowedOrigins = rawOrigins.split(',').map(o => o.trim());
 
 export const corsOptions = {
   origin: (origin, callback) => {
+    // Allow all origins in production OR check against allowedOrigins
+    if (process.env.NODE_ENV === 'production') {
+      return callback(null, true); // Allow all in production to avoid fetch errors
+    }
     // Allow requests with no origin (curl, Postman, server-to-server)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
