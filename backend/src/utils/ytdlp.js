@@ -30,14 +30,15 @@ const COOKIES   = process.env.COOKIE_PATH; // absolute path to cookies.txt if av
  */
 export async function ytdlpExtract(url) {
   const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-  // Use -j and more robust flags
-  let cmd = `${YT_BINARY} -j --no-warnings --no-playlist --skip-download --no-check-certificate --no-part --no-continue --user-agent "${userAgent}"`;
+  // Use -j and more robust flags, including flat-playlist to avoid timeouts on large data
+  let cmd = `${YT_BINARY} -j --no-warnings --no-playlist --flat-playlist --skip-download --no-check-certificate --no-part --no-continue --user-agent "${userAgent}"`;
   if (COOKIES) cmd += ` --cookies "${COOKIES}"`;
   cmd += ` "${url}"`;
   
   try {
     console.log(`[yt-dlp] Executing extraction for: ${url}`);
-    const { stdout, stderr } = await execAsync(cmd, { timeout: 45_000, maxBuffer: 30 * 1024 * 1024 });
+    // Increased timeout to 90 seconds for long videos and bumped buffer
+    const { stdout, stderr } = await execAsync(cmd, { timeout: 90_000, maxBuffer: 50 * 1024 * 1024 });
     
     if (stderr && !stderr.includes('warnings')) {
       console.warn(`[yt-dlp stderr] ${stderr.substring(0, 500)}`);
