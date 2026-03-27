@@ -7,9 +7,20 @@ import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import ffmpegStatic from 'ffmpeg-static';
 
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const execAsync = promisify(exec);
 const FFMPEG    = process.env.FFMPEG_PATH || ffmpegStatic;
 console.log(`[ytdlp] FFMPEG Path: ${FFMPEG}`);
+
+// Check if yt-dlp exists in the project root
+const LOCAL_YTDLP = path.join(__dirname, '../../yt-dlp');
+const YT_BINARY = process.env.NODE_ENV === 'production' ? LOCAL_YTDLP : 'yt-dlp';
+
 const COOKIES   = process.env.COOKIE_PATH; // absolute path to cookies.txt if available
 
 /**
@@ -20,28 +31,37 @@ const COOKIES   = process.env.COOKIE_PATH; // absolute path to cookies.txt if av
 export async function ytdlpExtract(url) {
   const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
   // Use -j and more robust flags
-  let cmd = `yt-dlp -j --no-warnings --no-playlist --skip-download --no-check-certificate --no-part --no-continue --user-agent "${userAgent}"`;
+  let cmd = `${YT_BINARY} -j --no-warnings --no-playlist --skip-download --no-check-certificate --no-part --no-continue --user-agent "${userAgent}"`;
   if (COOKIES) cmd += ` --cookies "${COOKIES}"`;
   cmd += ` "${url}"`;
   
   try {
-    console.log(`[yt-dlp] Executing: ${cmd.substring(0, 100)}...`);
+    console.log(`[yt-dlp] Executing extraction for: ${url}`);
     const { stdout, stderr } = await execAsync(cmd, { timeout: 45_000, maxBuffer: 30 * 1024 * 1024 });
     
     if (stderr && !stderr.includes('warnings')) {
       console.warn(`[yt-dlp stderr] ${stderr.substring(0, 500)}`);
     }
     
+    if (!stdout || stdout.trim() === '') {
+      throw new Error('Empty output from yt-dlp');
+    }
+
     const parsed = JSON.parse(stdout);
     console.log(`[yt-dlp success] Title: ${parsed.title}`);
     return parsed;
   } catch (err) {
-    console.error(`[yt-dlp extract failed] ${url}`);
-    console.error(`ERROR: ${err.message}`);
+    console.error(`[yt-dlp extract failed] URL: ${url}`);
+    console.error(`ERROR TYPE: ${err.name}`);
+    console.error(`ERROR MESSAGE: ${err.message}`);
     if (err.stderr) console.error(`STDERR: ${err.stderr}`);
-    const friendlyMsg = err.message.includes('Instagram') 
-      ? 'Instagram media is temporarily unavailable or private.' 
-      : 'Failed to extract video information. Please try again.';
+    
+    let friendlyMsg = 'Failed to extract video information. Please try again.';
+    if (err.message.includes('Instagram')) friendlyMsg = 'Instagram media is temporarily unavailable.';
+    if (err.message.includes('403')) friendlyMsg = 'Access Forbidden (403) - Platform might be blocking the server.';
+    if (err.message.includes('429')) friendlyMsg = 'Too Many Requests (429) - Server is rate-limited.';
+    if (err.message.includes('not found') || err.message.includes('enoent')) friendlyMsg = 'Extraction engine (yt-dlp) not found on server.';
+    
     throw new Error(friendlyMsg);
   }
 }
@@ -85,11 +105,10 @@ export function ytdlpStream(url, formatSpec, container = 'mp4') {
   
   args.push('--force-overwrites', '-o', '-', url);
 
-  const ytBinary = 'yt-dlp';
   console.log(`[yt-dlp stream] URL: ${url} Spec: ${formatSpec} Container: ${container}`);
   console.log(`[yt-dlp stream] Args: ${args.join(' ')}`);
 
-  const proc = spawn(ytBinary, args, { 
+  const proc = spawn(YT_BINARY, args, { 
     stdio: ['ignore', 'pipe', 'pipe']
   });
 
