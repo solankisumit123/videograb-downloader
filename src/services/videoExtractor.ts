@@ -6,7 +6,7 @@
  * VITE_API_URL (defaults to http://localhost:3001 for local dev).
  */
 
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) || 'https://videograb-downloader.onrender.com';
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) || 'https://videograb-downloader-ghhs.onrender.com';
 
 export interface VideoFormat {
   formatId: string;

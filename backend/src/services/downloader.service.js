@@ -100,7 +100,7 @@ export async function analyseUrl(rawUrl) {
 
     // 4. Global normalization post-service
     if (result.thumbnail && (result.thumbnail.includes('fbcdn') || result.thumbnail.includes('instagram'))) {
-      const backendUrl = process.env.BACKEND_URL || 'https://videograb-downloader.onrender.com';
+      const backendUrl = process.env.BACKEND_URL || 'https://videograb-downloader-ghhs.onrender.com';
       result.thumbnail = `${backendUrl}/api/thumbnail-proxy?url=${encodeURIComponent(result.thumbnail)}`;
     }
 
